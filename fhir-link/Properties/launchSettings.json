@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "fhir_link": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7056",
+      "launchBrowser": false
+    }
+  }
+}
