@@ -12,7 +12,11 @@ namespace fhir_link
         {
             //log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             /*todo:
-             * 
+             * setup fhir connector class
+             * query fhir for all records with links
+             * convert links in the returned JOSN files to csv template
+             * cleanup fhir records
+             * write csv to datalakes
              */
         }
     }
