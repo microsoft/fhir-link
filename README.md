@@ -9,7 +9,7 @@ Different EMR systems handle merge and unmerge patient records differently. Due 
 Customer Insights (D365) unifies disparate records into a single dataset that provides a unified view of that data.
 
 ## Solution 
-Our solution queries FHIR for patients record using Azure API for FHIR that have been modified (get patients with Link attribute)
+Our solution queries FHIR for modified patients record using Azure API for FHIR. (get patients with Link attribute)
 Azure function takes all the modified records, writes it to a template CSV file and uploads it to Customer Insights. 
 Customer insights can process the csv file template and update the patient records correctly. 
 
