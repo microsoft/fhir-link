@@ -4,6 +4,7 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Client;
+using Microsoft.WindowsAzure.Storage;
 using System;
 using System.Net.Http.Headers;
 
@@ -11,7 +12,7 @@ using System.Net.Http.Headers;
 namespace fhirlink;
 
 // overkill for non-durable function?
-public class Startup: FunctionsStartup
+public class Startup : FunctionsStartup
 {
     public override void ConfigureAppConfiguration(IFunctionsConfigurationBuilder builder)
     {
@@ -24,6 +25,7 @@ public class Startup: FunctionsStartup
 
     public override void Configure(IFunctionsHostBuilder builder)
     {
+        // todo: offer keyvault alternative via presence of keyvault environment variable.. log decision to console (don't az fx have direct integration w/ keyvault you'd take advantage of for this?)
         var fhirDataConnection = new FhirDataConnection
         {
             Tenant = Environment.GetEnvironmentVariable("FhirDataConnection:Tenant"),
@@ -32,6 +34,15 @@ public class Startup: FunctionsStartup
             BaseUrl = Environment.GetEnvironmentVariable("FhirDataConnection:BaseUrl"),
             Scopes = Environment.GetEnvironmentVariable("FhirDataConnection:Scopes").Split(',')
         };
+
+        var blobStrageConnStr = Environment.GetEnvironmentVariable("BlobStorageConnectionString");
+
+        builder.Services.AddScoped(options =>
+        {
+            var storageAccount = CloudStorageAccount.Parse(blobStrageConnStr);
+
+            return storageAccount.CreateCloudBlobClient();
+        });
 
         builder.Services.AddScoped(options =>
         {
