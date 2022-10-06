@@ -1,14 +1,20 @@
-# Project
+# FHIR Link
 
 > This repo has been populated by an initial template to help get you started. Please
 > make sure to update the content to build a great experience for community-building.
 
-As the maintainer of this project, please make a few updates:
+## Scenario
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+Different EMR systems handle merge and unmerge patient records differently. Due to this there is a potential of having different representation of patients records in different systems.
+Customer Insights (D365) unifies disparate records into a single dataset that provides a unified view of that data.
+
+## Solution 
+Our solution queries FHIR for patients record using Azure API for FHIR that have been modified (get patients with Link attribute)
+Azure function takes all the modified records, writes it to a template CSV file and uploads it to Customer Insights. 
+Customer insights can process the csv file template and update the patient records correctly. 
+
+
+
 
 ## Contributing
 
