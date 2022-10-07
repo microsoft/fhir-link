@@ -1,4 +1,4 @@
-name: Build and deploy .NET Core application to Function App fhir-link20221005124848
+name: Release Build and Deploy to Azure
 on:
   push:
     branches:
