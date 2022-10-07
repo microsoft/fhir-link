@@ -11,7 +11,6 @@ using System.Net.Http.Headers;
 [assembly: FunctionsStartup(typeof(Startup))]
 namespace fhirlink;
 
-// overkill for non-durable function?
 public class Startup : FunctionsStartup
 {
     public override void ConfigureAppConfiguration(IFunctionsConfigurationBuilder builder)
