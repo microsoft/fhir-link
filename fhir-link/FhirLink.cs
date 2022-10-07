@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using Task = System.Threading.Tasks.Task;
 
-namespace fhirlink;
+namespace FhirLink;
 
 public class FhirLink
 {
