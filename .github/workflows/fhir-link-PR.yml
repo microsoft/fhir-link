@@ -9,7 +9,7 @@ env:
   WORKING_DIRECTORY: .
 jobs:
   build-and-test:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
     - name: Setup .NET Core
