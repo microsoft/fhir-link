@@ -14,6 +14,7 @@ namespace fhirlink;
 public class FhirLink
 {
     private readonly string ENTITY_TYPE_TOKEN = "AzureAPIforFHIR_Patient";
+    private readonly string CONTAINER_NAME;
 
     private readonly CloudBlobClient _blobStorageClient;
     private readonly FhirClient _fhirClient;
@@ -22,6 +23,8 @@ public class FhirLink
     {
         _blobStorageClient = blobStorageClient;
         _fhirClient = fhirClient;
+
+        CONTAINER_NAME = Environment.GetEnvironmentVariable("BlobStorageContainerName") ?? "test";
     }
 
     [FunctionName("BuildMergedPatientCsv")]
@@ -40,24 +43,23 @@ public class FhirLink
 
             var patients = find.Entry.Select(ec => ec.Resource as Patient).ToList();
 
-            // need to find correct structure for composite key of the ids or just unique list...?
             var patientPairs = new Dictionary<(string, string), string>();
 
             // organize patients into unique patient pairs using dictionary
             foreach (var patient in patients)
             {
-                // only get replaces links
+                // only get replaced-by links
                 foreach (var link in patient.Link.Where(l => l.Type == Patient.LinkType.ReplacedBy))
                 {
                     var linkedPatientId = link.Other.Reference.Split('/').LastOrDefault();
 
-                    patientPairs.Add((patient.Id, linkedPatientId), null);
+                    patientPairs.Add((patient.Id, linkedPatientId), null); // want a unique combo of id and link, don't need value
                 }
             }
 
             log.LogInformation("Building CSV of merged patients");
 
-            var container = _blobStorageClient.GetContainerReference("test");
+            var container = _blobStorageClient.GetContainerReference(CONTAINER_NAME);
             await container.CreateIfNotExistsAsync();
 
             // todo: Settle on filename format
