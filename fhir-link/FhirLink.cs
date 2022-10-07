@@ -91,7 +91,7 @@ public class FhirLink
         {
             log.LogInformation($"Run completed at {DateTime.UtcNow}");
 
-            log.LogInformation($"Next run scheduled at {timer.Schedule.GetNextOccurrence}");
+            log.LogInformation($"Next run scheduled at {timer.Schedule.GetNextOccurrence(DateTime.UtcNow)}");
         }
     }
 }
