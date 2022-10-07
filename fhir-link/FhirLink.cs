@@ -25,7 +25,7 @@ public class FhirLink
     }
 
     [FunctionName("BuildMergedPatientCsv")]
-    public async Task RunAsync([TimerTrigger("0 0 */4 * * *", RunOnStartup = true)] TimerInfo timer, ILogger log)
+    public async Task RunAsync([TimerTrigger("0 0 1 * * *", RunOnStartup = true)] TimerInfo timer, ILogger log)
     {
         try
         {
