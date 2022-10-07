@@ -13,12 +13,14 @@ namespace fhirlink;
 
 public class FhirLink
 {
-    private readonly CloudBlobClient _blogStorageClient;
+    private readonly string ENTITY_TYPE_TOKEN = "AzureAPIforFHIR_Patient";
+
+    private readonly CloudBlobClient _blobStorageClient;
     private readonly FhirClient _fhirClient;
 
-    public FhirLink(CloudBlobClient blogStorageClient, FhirClient fhirClient)
+    public FhirLink(CloudBlobClient blobStorageClient, FhirClient fhirClient)
     {
-        _blogStorageClient = blogStorageClient;
+        _blobStorageClient = blobStorageClient;
         _fhirClient = fhirClient;
     }
 
@@ -55,11 +57,11 @@ public class FhirLink
 
             log.LogInformation("Building CSV of merged patients");
 
-            var container = _blogStorageClient.GetContainerReference("test");
+            var container = _blobStorageClient.GetContainerReference("test");
             await container.CreateIfNotExistsAsync();
 
             // todo: Settle on filename format
-            var blobName = $"merged_patients_{DateTime.UtcNow.ToString("yyyyMMdd_HHmmss")}.csv";
+            var blobName = $"merged_patients_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
 
             var blob = container.GetBlockBlobReference(blobName);
 
@@ -69,7 +71,7 @@ public class FhirLink
 
             foreach (var patientPair in patientPairs)
             {
-                var lineStr = $"AzureAPIforFHIR_Patient,{patientPair.Key.Item1},AzureAPIforFHIR_Patient,{patientPair.Key.Item2}\n";
+                var lineStr = $"{ENTITY_TYPE_TOKEN},{patientPair.Key.Item1},{ENTITY_TYPE_TOKEN},{patientPair.Key.Item2}\n";
 
                 stream.Write(Encoding.Default.GetBytes(lineStr));
             }
