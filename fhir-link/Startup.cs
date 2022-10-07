@@ -1,4 +1,4 @@
-﻿using fhirlink;
+﻿using FhirLink;
 using Hl7.Fhir.Rest;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -9,7 +9,7 @@ using System;
 using System.Net.Http.Headers;
 
 [assembly: FunctionsStartup(typeof(Startup))]
-namespace fhirlink;
+namespace FhirLink;
 
 public class Startup : FunctionsStartup
 {

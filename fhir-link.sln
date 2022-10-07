@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32922.545
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "fhir-link", "fhir-link\fhir-link.csproj", "{FE77F8D9-DAA3-4A23-AF42-83E40B959976}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FhirLink", "fhir-link\FhirLink.csproj", "{FE77F8D9-DAA3-4A23-AF42-83E40B959976}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

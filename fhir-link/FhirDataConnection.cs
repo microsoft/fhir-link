@@ -1,4 +1,4 @@
-﻿namespace fhirlink
+﻿namespace FhirLink
 {
     internal class FhirDataConnection
     {
