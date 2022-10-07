@@ -8,7 +8,7 @@ env:
   DOTNET_CORE_VERSION: 6.0.x
   WORKING_DIRECTORY: .
 jobs:
-  build-and-deploy:
+  build-and-test:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@master
