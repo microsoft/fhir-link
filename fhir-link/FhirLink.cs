@@ -13,7 +13,7 @@ namespace FhirLink;
 
 public class FhirLink
 {
-    private readonly string ENTITY_TYPE_TOKEN = "AzureAPIforFHIR_Patient";
+    private readonly string ENTITY_TYPE_TOKEN;
     private readonly string CONTAINER_NAME;
 
     private readonly CloudBlobClient _blobStorageClient;
@@ -24,11 +24,12 @@ public class FhirLink
         _blobStorageClient = blobStorageClient;
         _fhirClient = fhirClient;
 
-        CONTAINER_NAME = Environment.GetEnvironmentVariable("BlobStorageContainerName") ?? "test";
+        CONTAINER_NAME = Environment.GetEnvironmentVariable("BlobStorageContainerName") ?? throw new Exception("Configuration BlobStorageContainerName invalid");
+        ENTITY_TYPE_TOKEN = Environment.GetEnvironmentVariable("CustomerInsightsEntity") ?? throw new Exception("Configuration CustomerInsightsEntity invalid");
     }
 
     [FunctionName("BuildMergedPatientCsv")]
-    public async Task RunAsync([TimerTrigger("0 0 1 * * *", RunOnStartup = true)] TimerInfo timer, ILogger log)
+    public async Task RunAsync([TimerTrigger("%TimerTrigger%", RunOnStartup = true)] TimerInfo timer, ILogger log)
     {
         try
         {
