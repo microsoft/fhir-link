@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 
 namespace FhirLink;
@@ -15,6 +16,8 @@ public class FhirLink
 {
     private readonly string ENTITY_TYPE_TOKEN;
     private readonly string CONTAINER_NAME;
+    private readonly string ACTIVE_FOLDER_NAME = "alwaysmerge";
+    private readonly string ARCHIVE_FOLDER_NAME = "archive";
 
     private readonly CloudBlobClient _blobStorageClient;
     private readonly FhirClient _fhirClient;
@@ -27,7 +30,7 @@ public class FhirLink
         CONTAINER_NAME = Environment.GetEnvironmentVariable("BlobStorageContainerName") ?? throw new Exception("Configuration BlobStorageContainerName invalid");
         ENTITY_TYPE_TOKEN = Environment.GetEnvironmentVariable("CustomerInsightsEntity") ?? throw new Exception("Configuration CustomerInsightsEntity invalid");
     }
-
+     
     [FunctionName("BuildMergedPatientCsv")]
     public async Task RunAsync([TimerTrigger("%TimerTrigger%", RunOnStartup = true)] TimerInfo timer, ILogger log)
     {
@@ -58,13 +61,15 @@ public class FhirLink
                 }
             }
 
-            log.LogInformation("Building CSV of merged patients");
-
             var container = _blobStorageClient.GetContainerReference(CONTAINER_NAME);
             await container.CreateIfNotExistsAsync();
 
-            // todo: Settle on filename format
-            var blobName = $"merged_patients_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
+            var movedBlobCount = await MoveBlobs(container, ACTIVE_FOLDER_NAME, ARCHIVE_FOLDER_NAME);
+            if(movedBlobCount > 0)
+                log.LogInformation($"Moved {movedBlobCount} previous output {(movedBlobCount > 1 ? "files": "file")} from '{ACTIVE_FOLDER_NAME}' to '{ARCHIVE_FOLDER_NAME}'.");
+
+            log.LogInformation("Building CSV of merged patients");
+            var blobName = $"{ACTIVE_FOLDER_NAME}/merged_patients_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
 
             var blob = container.GetBlockBlobReference(blobName);
 
@@ -94,5 +99,72 @@ public class FhirLink
 
             log.LogInformation($"Next run scheduled at {timer.Schedule.GetNextOccurrence(DateTime.UtcNow)}");
         }
+    }
+
+    private async Task<int> MoveBlobs(CloudBlobContainer container, string srcDirectory, string dstDirectory)
+    {
+        var blobCount = 0;
+
+        foreach (var blob in await ListBlobsAsync(container, srcDirectory))
+        {
+            var srcPath = container.GetBlockBlobReference(blob.Name);
+            var rawBlobName = blob.Name.Split("/").LastOrDefault();
+            var dstPath = container.GetBlockBlobReference($"{dstDirectory}/{rawBlobName}");
+            await dstPath.StartCopyAsync(srcPath);
+            await srcPath.DeleteAsync();
+            blobCount++;
+        }
+        return blobCount;
+    }
+
+
+    private async Task<IEnumerable<CloudBlockBlob>> ListBlobsAsync(CloudBlobContainer container, string directoryPath,
+        BlobListingDetails listingDetails = BlobListingDetails.None, BlobRequestOptions options = null, bool recurse = false)
+    {
+        var foundBlobs = new List<CloudBlockBlob>();
+        BlobResultSegment segment = null;
+        var segmentResults = new List<IListBlobItem>();
+        while (segment == null || segment.ContinuationToken != null)
+        {
+            if (string.IsNullOrEmpty(directoryPath))
+            {
+                segment = await container.ListBlobsSegmentedAsync(
+                    useFlatBlobListing: false,
+                    blobListingDetails: listingDetails,
+                    maxResults: null,
+                    currentToken: segment?.ContinuationToken,
+                    options: options,
+                    operationContext: null,
+                    prefix: null);
+            }
+            else
+            {
+                var dir = container.GetDirectoryReference(directoryPath);
+                segment = await dir.ListBlobsSegmentedAsync(
+                    useFlatBlobListing: false,
+                    blobListingDetails: listingDetails,
+                    maxResults: null,
+                    currentToken: segment?.ContinuationToken,
+                    options: options,
+                    operationContext: null);
+            }
+
+            segmentResults.AddRange(segment.Results);
+        }
+
+        if (!segmentResults.Any())
+            return foundBlobs;
+
+        if (recurse)
+        {
+            foreach (var dir in segmentResults.OfType<CloudBlobDirectory>())
+            {
+                var subDir = dir.Uri.AbsolutePath.Substring($"/{container.Name}/".Length);
+                foundBlobs.AddRange(await ListBlobsAsync(container, subDir, recurse: true));
+            }
+        }
+
+        foundBlobs.AddRange(segmentResults.OfType<CloudBlockBlob>());
+        return foundBlobs;
     }
 }
