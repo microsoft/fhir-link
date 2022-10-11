@@ -1,20 +1,24 @@
 # FHIR Link
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+> FHIR Link is an open source function to help enable tighter integration between Azure Health Data Services FHIR Service (or Azure API for FHIR) and Dynamics 365 Customer Insights.
 
 ## Scenario
 
-Different EMR systems handle merge and unmerge patient records differently. Due to this there is a potential of having different representation of patients records in different systems.
-Customer Insights (D365) unifies disparate records into a single dataset that provides a unified view of that data.
+Different EHR systems handle merge and unmerge patient records differently. When ingesting patient data into FHIR, one common way to represent merged patients is with patient links. 
+
+Customer Insights (D365) unifies disparate records into a single dataset that provides a unified view of that data. For instance, from FHIR and CRM systems in order to build patient segments for targeted outreach. Patients merged in FHIR through patient.link, need to be respected as a part of the unification process in Customer Insights. 
 
 ## Solution 
-Our solution queries FHIR for modified patients record using Azure API for FHIR. (get patients with Link attribute)
-Azure function takes all the modified records, writes it to a template CSV file and uploads it to Customer Insights. 
-Customer insights can process the csv file template and update the patient records correctly. 
 
+Our solution is an Azure Function App that sits between the FHIR Service and Customer Insights, providing a list of merged patients to Customer Insights via Azure Data Lake for processing:
+- queries FHIR (Azure Health Data Services or Azure API for FHIR) for patients merged together using patient.link (get patients with Link attribute). 
+- takes FHIR ids of those patients linked with the replaced-by link type, and writes it to a template CSV file readable by Customer Insights.
+- the resulting CSV file is placed in an `alwaysmerge` directory
+- with each run, previous files are moved from the `alwaysmerge` directory to an `archive` directory
 
+Customer Insights can be configured to connect to this Azure Data Lake container as a data source, to be used in the Unify process as list of patients that will Always Match.
 
+Instructions to deploy and configure this Function App can be found in [setup.md](./docs/setup.md).
 
 ## Contributing
 
