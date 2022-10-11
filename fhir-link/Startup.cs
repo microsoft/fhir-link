@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Client;
 using Microsoft.WindowsAzure.Storage;
 using System;
+using System.Linq;
 using System.Net.Http.Headers;
 
 [assembly: FunctionsStartup(typeof(Startup))]
@@ -24,14 +25,15 @@ public class Startup : FunctionsStartup
 
     public override void Configure(IFunctionsHostBuilder builder)
     {
+        var baseFhirUrl = Environment.GetEnvironmentVariable("FhirDataConnection:BaseUrl");
         // todo: offer keyvault alternative via presence of keyvault environment variable.. log decision to console (don't az fx have direct integration w/ keyvault you'd take advantage of for this?)
         var fhirDataConnection = new FhirDataConnection
         {
             Tenant = Environment.GetEnvironmentVariable("FhirDataConnection:Tenant"),
             ClientId = Environment.GetEnvironmentVariable("FhirDataConnection:ClientId"),
             ClientSecret = Environment.GetEnvironmentVariable("FhirDataConnection:ClientSecret"),
-            BaseUrl = Environment.GetEnvironmentVariable("FhirDataConnection:BaseUrl"),
-            Scopes = Environment.GetEnvironmentVariable("FhirDataConnection:Scopes").Split(',')
+            BaseUrl = baseFhirUrl,
+            Scopes = ($"{baseFhirUrl}{(baseFhirUrl.Last() == '/' ? ".default" : "/.default")}").Split(','),
         };
 
         var blobStrageConnStr = Environment.GetEnvironmentVariable("BlobStorageConnectionString");
