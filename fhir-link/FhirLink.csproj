@@ -4,6 +4,7 @@
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.7.0" />
     <PackageReference Include="Hl7.Fhir.R4B" Version="4.3.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Microsoft.Identity.Client" Version="4.47.2" />

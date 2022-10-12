@@ -1,4 +1,5 @@
-﻿using FhirLink;
+﻿using Azure.Identity;
+using FhirLink;
 using Hl7.Fhir.Rest;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -30,8 +31,6 @@ public class Startup : FunctionsStartup
         var fhirDataConnection = new FhirDataConnection
         {
             Tenant = Environment.GetEnvironmentVariable("FhirDataConnection:Tenant"),
-            ClientId = Environment.GetEnvironmentVariable("FhirDataConnection:ClientId"),
-            ClientSecret = Environment.GetEnvironmentVariable("FhirDataConnection:ClientSecret"),
             BaseUrl = baseFhirUrl,
             Scopes = ($"{baseFhirUrl}{(baseFhirUrl.Last() == '/' ? ".default" : "/.default")}").Split(','),
         };
@@ -53,17 +52,11 @@ public class Startup : FunctionsStartup
                 PreferredReturn = Prefer.ReturnMinimal
             };
 
-            var app = ConfidentialClientApplicationBuilder.Create(fhirDataConnection.ClientId)
-                .WithClientSecret(fhirDataConnection.ClientSecret)
-                .Build();
-
-            var tokenResult = app.AcquireTokenForClient(fhirDataConnection.Scopes)
-            .WithAuthority(AzureCloudInstance.AzurePublic, fhirDataConnection.Tenant)
-            .ExecuteAsync().Result;
-
+            var creds = new DefaultAzureCredential();
+            var fhirToken = creds.GetToken(new Azure.Core.TokenRequestContext(fhirDataConnection.Scopes, tenantId: fhirDataConnection.Tenant));
             var client = new FhirClient(fhirDataConnection.BaseUrl, settings);
 
-            client.RequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenResult.AccessToken);
+            client.RequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", fhirToken.Token);
 
             return client;
         });
