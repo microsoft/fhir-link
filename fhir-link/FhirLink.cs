@@ -51,6 +51,8 @@ public class FhirLink
                 bundle = await _fhirClient.ContinueAsync(bundle);
             }
 
+            log.LogInformation($"Found {patients.Count} patients with 'links'");
+
             var patientPairs = new Dictionary<(string, string), string>();
 
             // organize patients into unique patient pairs using dictionary
