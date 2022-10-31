@@ -38,14 +38,18 @@ public class FhirLink
         {
             log.LogInformation($"Run started at {DateTime.UtcNow}");
 
-            var q = new SearchParams().Where("link:missing=false").Select("id", "link"); 
+            var q = new SearchParams().Where("link:missing=false").LimitTo(50).Select("id", "link"); 
 
             log.LogInformation("Querying FHIR for patients with links");
 
             // The cast here will get rid of non-patients (ideally would be better to filter with the SearchParams)
-            var find = await _fhirClient.SearchAsync<Patient>(q);
-
-            var patients = find.Entry.Select(ec => ec.Resource as Patient).ToList();
+            var bundle = await _fhirClient.SearchAsync<Patient>(q);
+            var patients = new List<Patient>();
+            while (bundle != null)
+            {
+                patients.AddRange(bundle.Entry.Select(p => (Patient)p.Resource).ToList());
+                bundle = await _fhirClient.ContinueAsync(bundle);
+            }
 
             var patientPairs = new Dictionary<(string, string), string>();
 
